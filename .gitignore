@@ -8,3 +8,7 @@ python_aiml.egg-info
 
 *.brn
 *.brain
+
+.ipynb_checkpoints/
+Lesson*.xml
+*.ipynb

@@ -14,6 +14,7 @@ import sys
 
 from .constants import *
 
+
 class PatternMgr:
     # special dictionary keys
     _UNDERSCORE = 0
@@ -199,20 +200,21 @@ class PatternMgr:
         else:
             # unknown value
             raise ValueError( "starType must be in ['star', 'thatstar', 'topicstar']" )
-        
+
         # compare the input string to the matched pattern, word by word.
         # At the end of this loop, if foundTheRightStar is true, start and
         # end will contain the start and end indices (in "words") of
         # the substring that the desired star matched.
         foundTheRightStar = False
         start = end = j = numStars = k = 0
-        for i in range(len(words)):
+        for i in range(len(words)): # i is the word index
             # This condition is true after processing a star
             # that ISN'T the one we're looking for.
-            if i < k:
-                continue
+            if i < k: # k is the current word within the star match,
+                # or the first word after the star match.
+                continue # until the word index reaches the end of the star.
             # If we're reached the end of the pattern, we're done.
-            if j == len(patMatch):
+            if j == len(patMatch): # j is the current pattern location
                 break
             if not foundTheRightStar:
                 if patMatch[j] in [self._STAR, self._UNDERSCORE]: #we got a star
@@ -221,19 +223,25 @@ class PatternMgr:
                         # This is the star we care about.
                         foundTheRightStar = True
                     start = i
-                    # Iterate through the rest of the string.
-                    for k in range (i, len(words)):
-                        # If the star is at the end of the pattern,
-                        # we know exactly where it ends.
-                        if j+1  == len (patMatch):
-                            end = len (words)
-                            break
-                        # If the words have started matching the
-                        # pattern again, the star has ended.
-                        if patMatch[j+1] == words[k]:
-                            end = k - 1
-                            i = k
-                            break
+                    # If the star is at the end of the pattern,
+                    # match the rest of the words.
+                    if j+1 == len (patMatch):
+                        end = len (words)
+                    else:
+                        # If the next word in the pattern is another star, then
+                        # we only want to match the one word
+                        if patMatch[j+1] in [self._STAR, self._UNDERSCORE]:
+                            end = j
+                        else:
+                            # Iterate through the rest of the words searching
+                            # for the end of the star.
+                            for k in range (i, len(words)):
+                                # If the words have started matching the
+                                # pattern again, the star has ended.
+                                if patMatch[j+1] == words[k]:
+                                    end = k - 1
+                                    i = k
+                                    break
                 # If we just finished processing the star we cared
                 # about, we exit the loop early.
                 if foundTheRightStar:
@@ -243,10 +251,13 @@ class PatternMgr:
             
         # extract the star words from the original, unmutilated input.
         if foundTheRightStar:
-            #print( ' '.join(pattern.split()[start:end+1]) )
-            if starType == 'star': return ' '.join(pattern.split()[start:end+1])
-            elif starType == 'thatstar': return ' '.join(that.split()[start:end+1])
-            elif starType == 'topicstar': return ' '.join(topic.split()[start:end+1])
+            if starType == 'star':
+                match = ' '.join(pattern.split()[start:end+1])
+            elif starType == 'thatstar':
+                match = ' '.join(that.split()[start:end+1])
+            elif starType == 'topicstar':
+                match = ' '.join(topic.split()[start:end+1])
+            return match
         else: return u""
 
     def _match(self, words, thatWords, topicWords, root):
